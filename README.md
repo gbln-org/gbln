@@ -1,3 +1,7 @@
+<div align="center">
+
+<img src="logo.svg" alt="GBLN Logo" width="120" height="120">
+
 # GBLN - Goblin Bounded Lean Notation
 
 **The first type-safe LLM-native data format: Deterministic, Token-Efficient, Memory-Bounded**
@@ -5,6 +9,8 @@
 [![Status](https://img.shields.io/badge/status-specification-blue)](docs/01-specification.md)
 [![Version](https://img.shields.io/badge/version-1.0-green)](docs/00-introduction.md)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+
+</div>
 
 ---
 
@@ -400,7 +406,13 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ---
 
+<div align="center">
+
+<img src="logo.svg" alt="GBLN" width="80" height="80">
+
 *GBLN - Goblin Bounded Lean Notation*  
-*The first type-safe, memory-bounded LLM-native data format* 🦇
+*The first type-safe, memory-bounded LLM-native data format*
 
 **Built for the AI era. Optimised for machines. Readable by humans.**
+
+</div>
