@@ -5,10 +5,10 @@
 This document contains **real, measured benchmarks** with valid syntax for all formats.
 
 **Methodology**: All formats use their standard/optimal encoding:
-- JSON: Standard `indent=2` (readable) and minified (production)
+- JSON: Standard `indent=2` (development) and minified (production)
 - YAML: 2-space indent (standard)
 - TOON: YAML-style for nested objects (per specification)
-- GBLN: 2-space indent (readable) and compressed (production)
+- GBLN: No whitespace (production format) and pretty-printed (development only)
 
 ---
 
@@ -22,27 +22,27 @@ This document contains **real, measured benchmarks** with valid syntax for all f
 - **Data types**: Strings, numbers, booleans, dates, arrays, nested objects
 - **Realism**: Randomized but realistic data (names, cities, skills, certifications, dates)
 
-### Human-Readable Comparison (Development Mode)
+### Production Comparison (Wire/Cache/LLM)
+
+| Format | Bytes | vs JSON | Type-Safe | Memory-Bounded |
+|--------|-------|---------|-----------|----------------|
+| **GBLN** | **49,276** ⭐ | **0.4% smaller** ⭐ | ✅ | ✅ |
+| JSON (minified) | 49,466 | baseline | ❌ | ❌ |
+| TOON | 53,601 | 8.4% larger | ❌ | ❌ |
+| YAML | 57,701 | 16.6% larger | ❌ | ❌ |
+
+**Critical Finding**: GBLN is **190 bytes smaller** than minified JSON (0.4%) **AND includes type safety + memory bounds**.
+
+### Development Comparison (Pretty-Printed)
 
 | Format | Bytes | vs JSON | Notes |
 |--------|-------|---------|-------|
 | TOON | 53,601 | -32% | YAML-style, 2-space indent |
 | YAML | 57,701 | -27% | 2-space indent |
-| **GBLN** | **66,273** | **-17%** ⭐ | 2-space indent + type hints |
-| JSON | 79,394 | baseline | Standard `indent=2` |
+| **GBLN (formatted)** | **66,273** | **-17%** ⭐ | 2-space indent + type hints |
+| JSON (indent=2) | 79,394 | baseline | Standard `indent=2` |
 
-**Key Insight**: GBLN readable is 17% smaller than JSON **while including type information**.
-
-### Production/Compressed Comparison
-
-| Format | Bytes | vs JSON | Type-Safe | Memory-Bounded |
-|--------|-------|---------|-----------|----------------|
-| **GBLN (minified)** | **49,276** | **-0.4%** ⭐ | ✅ | ✅ |
-| JSON (minified) | 49,466 | baseline | ❌ | ❌ |
-| TOON | 53,601 | +8% | ❌ | ❌ |
-| YAML | 57,701 | +17% | ❌ | ❌ |
-
-**Critical Finding**: GBLN minified is **190 bytes smaller** than minified JSON (0.4%) **AND includes type safety + memory bounds**.
+**Key Insight**: GBLN formatted is 17% smaller than JSON **while including type information**.
 
 ### The Real Story: Type Safety for Free
 
@@ -52,7 +52,7 @@ This document contains **real, measured benchmarks** with valid syntax for all f
 - ❌ No memory bounds
 - ❌ Runtime errors only
 
-**GBLN minified**: 49,276 bytes  
+**GBLN** (production format): 49,276 bytes  
 - ✅ **Smaller than JSON** (190 bytes / 0.4%)
 - ✅ **Parse-time type validation** (`id<u32>` validates 0-4B)
 - ✅ **Bounded strings** (`s32` = max 32 chars)
@@ -60,6 +60,8 @@ This document contains **real, measured benchmarks** with valid syntax for all f
 - ✅ **Catches LLM hallucinations** at parse-time
 
 **Conclusion**: GBLN gives you type safety + memory bounds **for free** - actually 0.4% cheaper than unsafe JSON.
+
+**Important**: GBLN (49,276 bytes) is the actual format. Pretty-printed GBLN (66,273 bytes) is only for development/editing - never sent over wire or cached.
 
 ---
 
@@ -101,10 +103,12 @@ JSON wastes 6 characters on quotes (`" "` around key, `" "` around value)
 **JSON**: Every field ends with `,` (except last)  
 **GBLN**: Whitespace-separated, no commas needed
 
-### 5. Compressed Mode Removes ALL Structural Whitespace
+### 5. GBLN Format Has No Structural Whitespace
 
 **JSON minified**: Still has `,` and `:` separators  
-**GBLN minified**: Zero whitespace except inside `()` values
+**GBLN**: Zero whitespace except inside `()` values (the actual format)
+
+**Note**: "GBLN formatted" or "GBLN pretty-printed" is just for humans during development - adds optional whitespace for readability.
 
 ---
 
@@ -151,19 +155,19 @@ JSON wastes 6 characters on quotes (`" "` around key, `" "` around value)
 
 **Why TOON didn't win here**: This dataset has nested `address` objects and `certifications` arrays of objects. TOON falls back to YAML-style, losing its CSV compression advantage.
 
-### GBLN (66,273 bytes readable, 49,276 bytes compressed)
+### GBLN (49,276 bytes production, 66,273 bytes formatted)
 
 **Strengths**:
-- **Smallest compressed format** (0.4% smaller than JSON minified)
+- **Smallest production format** (0.4% smaller than JSON minified)
 - **Type safety included** (no extra cost!)
 - **Memory bounds included**
 - Arrays without quotes/commas
-- Two modes: human-readable (development) and compressed (production)
+- Optional formatting: compact (production) or pretty-printed (development)
 - Deterministic parsing (3 simple rules)
 
 **Weaknesses**:
 - New format (smaller ecosystem than JSON)
-- Type hints add size to readable format (but not to compressed)
+- Type hints add size when pretty-printed (development only)
 
 ---
 
@@ -228,13 +232,15 @@ Compresses completely while preserving structure, types, and bounds.
 ### File Size Winner
 
 **For nested data (this benchmark):**
-1. 🥇 **GBLN minified** - 49,276 bytes (0.4% smaller than JSON)
+1. 🥇 **GBLN** - 49,276 bytes (0.4% smaller than JSON, production format)
 2. 🥈 **JSON minified** - 49,466 bytes (baseline for production)
-3. 🥉 **TOON** - 53,601 bytes (+8% vs JSON, but has indentation overhead)
+3. 🥉 **TOON** - 53,601 bytes (8.4% larger vs JSON)
 
 **For flat/uniform data:**
 - TOON would likely win with CSV-style compression
 - Not tested in this benchmark
+
+**Important Note**: GBLN at 49,276 bytes **is** the format. Pretty-printed GBLN (66,273 bytes) is only for development.
 
 ### Real Winner: GBLN for Reliability
 
@@ -260,19 +266,25 @@ File size is nearly identical to JSON minified (~0.4% difference).
 ## Benchmark Files
 
 ### 100 Records
-- `employees-100.json` - Standard JSON (79,394 bytes, indent=2)
-- `employees-100-minified.json` - Minified JSON (49,466 bytes)
-- `employees-100.yaml` - Standard YAML (57,701 bytes)
-- `employees-100.toon` - Valid TOON (53,601 bytes)
-- `employees-100.gbln` - GBLN readable (66,273 bytes, 2-space indent)
-- `employees-100-mini.gbln` - GBLN minified (49,276 bytes) ⭐
+- `employees-100.json` - JSON formatted (79,394 bytes, indent=2, development)
+- `employees-100-minified.json` - JSON minified (49,466 bytes, production)
+- `employees-100.yaml` - YAML (57,701 bytes)
+- `employees-100.toon` - TOON (53,601 bytes)
+- `employees-100.gbln` - **GBLN** (49,276 bytes, production format) ⭐
+- `employees-100.pretty.gbln` - GBLN formatted (66,273 bytes, development only)
 
 ### 5 Records (Initial Benchmark)
-- `employees.json` - Standard JSON (4,431 bytes)
-- `employees.yaml` - Standard YAML (3,535 bytes)
-- `employees.toon` - Valid TOON (3,326 bytes)
-- `employees.gbln` - GBLN readable (4,757 bytes)
-- `employees-mini.gbln` - GBLN minified (3,138 bytes) ⭐
+- `employees.json` - JSON formatted (4,431 bytes, development)
+- `employees.yaml` - YAML (3,535 bytes)
+- `employees.toon` - TOON (3,326 bytes)
+- `employees.gbln` - **GBLN** (3,138 bytes, production format) ⭐
+- `employees.pretty.gbln` - GBLN formatted (4,757 bytes, development only)
+
+**File Naming Convention**:
+- `*.gbln` = Production format (compact, no whitespace)
+- `*.pretty.gbln` = Development format (formatted for humans)
+- `*.json` = Development format (indent=2)
+- `*-minified.json` = Production format
 
 All files use **valid, optimised syntax** for their respective formats.
 

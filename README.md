@@ -23,18 +23,18 @@ Text-based data formats weren't designed for the AI era:
 ## ⚡ The Solution
 
 ```gbln
-:| Development: Human-readable
+:| GBLN (Production Format - No Whitespace)
+server{host<s64>(api.example.com)port<u16>(8080)workers<u8>(4)}
+
+:| Development Mode (Pretty-Printed for Humans)
 server{
     host<s64>(api.example.com)
     port<u16>(8080)
     workers<u8>(4)
 }
-
-:| Production/LLM: Compressed (84% fewer tokens)
-server{host<s64>(api.example.com)port<u16>(8080)workers<u8>(4)}
 ```
 
-**Same data, dramatically different efficiency.**
+**GBLN is the compact format. Whitespace is optional and only for development.**
 
 ---
 
@@ -76,29 +76,29 @@ server{host<s64>(api.example.com)port<u16>(8080)workers<u8>(4)}
 
 ### 100 Employees (Nested Data, Production-Ready)
 
-**Human-Readable Formats** (Development):
+**Production Formats** (Wire/Cache/LLM):
+
+| Format | Bytes | vs JSON | Type-Safe | Memory-Bounded |
+|--------|-------|---------|-----------|----------------|
+| **GBLN** | **49,276** ⭐ | **0.4% smaller** ⭐ | ✅ ⭐ | ✅ ⭐ |
+| JSON (minified) | 49,466 | baseline | ❌ | ❌ |
+| TOON | 53,601 | 8.4% larger | ❌ | ❌ |
+| YAML | 57,701 | 16.6% larger | ❌ | ❌ |
+
+**Development Formats** (Pretty-Printed for Humans):
 
 | Format | Bytes | vs JSON | Type-Safe | Memory-Bounded |
 |--------|-------|---------|-----------|----------------|
 | TOON | 53,601 | -32% | ❌ | ❌ |
 | YAML | 57,701 | -27% | ❌ | ❌ |
-| **GBLN** | **66,273** | **-17%** | ✅ ⭐ | ✅ ⭐ |
-| JSON | 79,394 | baseline | ❌ | ❌ |
+| **GBLN (formatted)** | **66,273** | **-17%** | ✅ ⭐ | ✅ ⭐ |
+| JSON (indent=2) | 79,394 | baseline | ❌ | ❌ |
 
-**Minified Formats** (Production):
-
-| Format | Bytes | vs JSON | Type-Safe | Memory-Bounded |
-|--------|-------|---------|-----------|----------------|
-| **GBLN (mini)** | **49,276** ⭐ | **0.4% smaller** ⭐ | ✅ ⭐ | ✅ ⭐ |
-| JSON (minified) | 49,466 | baseline | ❌ | ❌ |
-| TOON | 53,601 | 8.4% larger | ❌ | ❌ |
-| YAML | 57,701 | 16.6% larger | ❌ | ❌ |
-
-**The Real Win**: GBLN minified is **0.4% smaller** than JSON minified (190 bytes) **AND includes type safety + memory bounds for free**.
+**The Real Win**: GBLN is **0.4% smaller** than JSON minified (190 bytes) **AND includes type safety + memory bounds for free**.
 
 ### Key Insights
 
-**File Size**: Nearly identical to JSON minified (~0.4% difference)
+**File Size**: GBLN is 0.4% smaller than JSON minified (~190 bytes difference)
 
 **But GBLN adds** (at zero size cost):
 - ✅ **Parse-time type validation** - Catch errors before runtime
@@ -108,8 +108,14 @@ server{host<s64>(api.example.com)port<u16>(8080)workers<u8>(4)}
 - ✅ **Deterministic parsing** - 3 simple rules, O(1) lookahead
 - ✅ **Progressive complexity** - Types optional for prototyping
 
+**What is "GBLN"?**
+- **GBLN** = The format (no whitespace except in values)
+- **GBLN formatted** = Pretty-printed for humans (development only)
+- File extensions: `*.gbln` (production) or `*.pretty.gbln` (formatted)
+- Wire/cache/LLM always use plain GBLN (compact)
+
 **When Each Format Wins**:
-- **GBLN**: Nested data + type safety (this benchmark) ⭐
+- **GBLN**: Type safety + predictable memory + compact (this benchmark) ⭐
 - **TOON**: Flat/uniform tables (CSV-style, not tested here)
 - **JSON**: Maximum ecosystem compatibility
 - **YAML**: Human-editable configs (with gotchas)
@@ -186,10 +192,12 @@ sensor{
 }
 ```
 
-### LLM-Compressed (Same Data)
+### GBLN Format (Same Data, Production)
 ```gbln
 sensor{device_id<s16>(SENS-001)temperature<f32>(22.5)humidity<u8>(65)battery<u8>(87)}
 ```
+
+**Note**: The compact format above is GBLN. Whitespace in previous example is only for readability during development.
 
 ---
 
