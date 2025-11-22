@@ -204,9 +204,11 @@ Next char after identifier/<type> determines structure:
 
 ## 📖 Examples
 
+**Note**: All examples below show the **formatted version** (with whitespace for human readability). In production, GBLN uses the compact format without structural whitespace.
+
 ### Configuration File
 ```gbln
-:| Application Configuration
+:| Application Configuration (formatted for humans)
 app{
     name<s32>(My Application)
     version<s16>(1.0.0)
@@ -216,8 +218,16 @@ app{
 }
 ```
 
+**Production format** (what actually gets sent/stored):
+```gbln
+app{name<s32>(My Application)version<s16>(1.0.0)port<u16>(8080)workers<u8>(4)debug<b>(f)}
+```
+
+---
+
 ### API Response
 ```gbln
+:| Formatted for development/debugging
 response{
     status<u16>(200)
     message<s64>(Success)
@@ -231,8 +241,16 @@ response{
 }
 ```
 
+**Production format**:
+```gbln
+response{status<u16>(200)message<s64>(Success)data{user{id<u32>(12345)name<s64>(Alice Johnson)email<s64>(alice@example.com)}}}
+```
+
+---
+
 ### IoT Sensor Data
 ```gbln
+:| Formatted for development
 sensor{
     device_id<s16>(SENS-001)
     temperature<f32>(22.5)
@@ -241,12 +259,14 @@ sensor{
 }
 ```
 
-### GBLN Format (Same Data, Production)
+**Production format** (actual GBLN over wire/cache):
 ```gbln
 sensor{device_id<s16>(SENS-001)temperature<f32>(22.5)humidity<u8>(65)battery<u8>(87)}
 ```
 
-**Note**: The compact format above is GBLN. Whitespace in previous example is only for readability during development.
+---
+
+**Key Takeaway**: GBLN is always compact. Formatting with indentation is optional and only for developers editing files. Tools like `gbln fmt` can convert between formats.
 
 ---
 
