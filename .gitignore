@@ -1,6 +1,5 @@
-# Claude Code (keep tickets tracked)
+# Claude Code
 .claude/
-!.claude/tickets/
 
 # Rust
 target/
