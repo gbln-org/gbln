@@ -37,12 +37,12 @@ This document contains **real, measured benchmarks** with valid syntax for all f
 
 | Format | Bytes | vs JSON | Type-Safe | Memory-Bounded |
 |--------|-------|---------|-----------|----------------|
-| **GBLN (compressed)** | **49,276** | **-0.4%** ⭐ | ✅ | ✅ |
+| **GBLN (minified)** | **49,276** | **-0.4%** ⭐ | ✅ | ✅ |
 | JSON (minified) | 49,466 | baseline | ❌ | ❌ |
 | TOON | 53,601 | +8% | ❌ | ❌ |
 | YAML | 57,701 | +17% | ❌ | ❌ |
 
-**Critical Finding**: GBLN compressed is **190 bytes smaller** than minified JSON (0.4%) **AND includes type safety + memory bounds**.
+**Critical Finding**: GBLN minified is **190 bytes smaller** than minified JSON (0.4%) **AND includes type safety + memory bounds**.
 
 ### The Real Story: Type Safety for Free
 
@@ -52,7 +52,7 @@ This document contains **real, measured benchmarks** with valid syntax for all f
 - ❌ No memory bounds
 - ❌ Runtime errors only
 
-**GBLN compressed**: 49,276 bytes  
+**GBLN minified**: 49,276 bytes  
 - ✅ **Smaller than JSON** (190 bytes / 0.4%)
 - ✅ **Parse-time type validation** (`id<u32>` validates 0-4B)
 - ✅ **Bounded strings** (`s32` = max 32 chars)
@@ -104,7 +104,7 @@ JSON wastes 6 characters on quotes (`" "` around key, `" "` around value)
 ### 5. Compressed Mode Removes ALL Structural Whitespace
 
 **JSON minified**: Still has `,` and `:` separators  
-**GBLN compressed**: Zero whitespace except inside `()` values
+**GBLN minified**: Zero whitespace except inside `()` values
 
 ---
 
@@ -188,7 +188,7 @@ JSON wastes 6 characters on quotes (`" "` around key, `" "` around value)
 
 | Format | Words (wc -w) | vs JSON |
 |--------|---------------|---------|
-| GBLN compressed | TBD | TBD |
+| GBLN minified | TBD | TBD |
 | JSON minified | TBD | baseline |
 
 *(To be measured with proper tokenizer)*
@@ -228,7 +228,7 @@ Compresses completely while preserving structure, types, and bounds.
 ### File Size Winner
 
 **For nested data (this benchmark):**
-1. 🥇 **GBLN compressed** - 49,276 bytes (0.4% smaller than JSON)
+1. 🥇 **GBLN minified** - 49,276 bytes (0.4% smaller than JSON)
 2. 🥈 **JSON minified** - 49,466 bytes (baseline for production)
 3. 🥉 **TOON** - 53,601 bytes (+8% vs JSON, but has indentation overhead)
 
@@ -265,14 +265,14 @@ File size is nearly identical to JSON minified (~0.4% difference).
 - `employees-100.yaml` - Standard YAML (57,701 bytes)
 - `employees-100.toon` - Valid TOON (53,601 bytes)
 - `employees-100.gbln` - GBLN readable (66,273 bytes, 2-space indent)
-- `employees-100-compressed.gbln` - GBLN compressed (49,276 bytes) ⭐
+- `employees-100-mini.gbln` - GBLN minified (49,276 bytes) ⭐
 
 ### 5 Records (Initial Benchmark)
 - `employees.json` - Standard JSON (4,431 bytes)
 - `employees.yaml` - Standard YAML (3,535 bytes)
 - `employees.toon` - Valid TOON (3,326 bytes)
 - `employees.gbln` - GBLN readable (4,757 bytes)
-- `employees-compressed.gbln` - GBLN compressed (3,138 bytes) ⭐
+- `employees-mini.gbln` - GBLN minified (3,138 bytes) ⭐
 
 All files use **valid, optimised syntax** for their respective formats.
 

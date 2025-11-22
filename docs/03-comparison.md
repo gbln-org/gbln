@@ -694,7 +694,7 @@ active<b>(t)        :| Validated boolean
 | CSV | 85 KB | +183% |
 | CSV (with headers) | 85.2 KB | +184% |
 | **GBLN** | **30 KB** | **baseline** ⭐ |
-| **GBLN (compressed)** | **25 KB** | **-17%** ⭐ |
+| **GBLN (minified)** | **25 KB** | **-17%** ⭐ |
 
 **Why GBLN is smaller:**
 - CSV repeats column names in header OR requires external schema
@@ -970,10 +970,10 @@ config{server{host<s64>(example.com)port<u16>(8080)}database{url<s128>(postgres:
 | JSON | 4,431 bytes | 328 | ❌ | ❌ |
 | YAML | 3,535 bytes | 315 | ❌ | ❌ |
 | TOON | 3,326 bytes | 280 | ❌ | ❌ |
-| **GBLN (compressed)** | **3,138 bytes** ⭐ | **47** ⭐ | ✅ ⭐ | ✅ ⭐ |
+| **GBLN (minified)** | **3,138 bytes** ⭐ | **47** ⭐ | ✅ ⭐ | ✅ ⭐ |
 | GBLN (readable) | 4,757 bytes | 202 | ✅ | ✅ |
 
-**GBLN compressed is 6% smaller than TOON and 29% smaller than JSON.**
+**GBLN minified is 6% smaller than TOON and 29% smaller than JSON.**
 
 **Why GBLN wins this benchmark:**
 - Dataset has nested objects (address, certifications)
@@ -1079,7 +1079,7 @@ Error: String exceeds maximum length
   - Trade-off: Type hints add overhead for flat arrays (but still very compact when compressed)
 
 **Real benchmark (5 employees, nested structures):**
-- GBLN compressed: 3,138 bytes (winner)
+- GBLN minified: 3,138 bytes (winner)
 - TOON: 3,326 bytes (+6%)
 - YAML: 3,535 bytes (+13%)
 - JSON: 4,431 bytes (+41%)
@@ -1156,13 +1156,13 @@ GBLN competes with **text-based formats** where:
 
 | Format | Size (bytes) | vs JSON | vs Smallest |
 |--------|--------------|---------|-------------|
-| **GBLN (compressed)** | **3,138** ⭐ | **-29%** | **baseline** |
+| **GBLN (minified)** | **3,138** ⭐ | **-29%** | **baseline** |
 | TOON | 3,326 | -25% | +6% |
 | YAML | 3,535 | -20% | +13% |
 | JSON | 4,431 | baseline | +41% |
 | GBLN (readable) | 4,757 | +7% | +52% |
 
-**GBLN compressed is the smallest format** for nested/complex data.
+**GBLN minified is the smallest format** for nested/complex data.
 
 **Note**: TOON wins for flat/uniform arrays (CSV-style). GBLN wins for nested structures.
 
@@ -1170,13 +1170,13 @@ GBLN competes with **text-based formats** where:
 
 | Format | Words | vs JSON | vs Fewest |
 |--------|-------|---------|-----------|
-| **GBLN (compressed)** | **47** ⭐ | **-86%** | **baseline** |
+| **GBLN (minified)** | **47** ⭐ | **-86%** | **baseline** |
 | GBLN (readable) | 202 | -38% | +330% |
 | TOON | 280 | -15% | +496% |
 | YAML | 315 | -4% | +570% |
 | JSON | 328 | baseline | +598% |
 
-**GBLN compressed uses 86% fewer words than JSON** - approximation for token efficiency.
+**GBLN minified uses 86% fewer words than JSON** - approximation for token efficiency.
 
 **Warning**: Word count is NOT accurate for LLM tokens. Proper measurement requires tiktoken/GPT-4 tokenizer. Large-scale benchmarks (1000+ records) pending GBLN implementation.
 

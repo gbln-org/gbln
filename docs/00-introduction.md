@@ -386,7 +386,7 @@ server{host<s64>(api.example.com)port<u16>(8080)workers<u8>(4)}
 
 **Token Savings (1000 records):**
 - JSON: 52,000 tokens
-- **GBLN (compressed): 8,300 tokens** (84% reduction)
+- **GBLN (minified): 8,300 tokens** (84% reduction)
 
 **Perfect for:**
 - LLM prompt contexts

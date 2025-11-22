@@ -218,16 +218,16 @@ users[{id<u32>(12345)username<s16>(alice_dev)email<s64>(alice@example.com)age<i8
 
 ### Token Efficiency Summary
 
-| Format | Tokens | vs GBLN (compressed) |
+| Format | Tokens | vs GBLN (minified) |
 |--------|--------|----------------------|
 | JSON (pretty) | 52,000 | +527% |
 | JSON (minified) | 37,000 | +346% |
 | YAML | 48,000 | +478% |
 | TOML | 55,000 | +563% |
 | **GBLN (uncompressed)** | 10,000 | +20% |
-| **GBLN (compressed)** | **8,300** | **baseline** |
+| **GBLN (minified)** | **8,300** | **baseline** |
 
-**GBLN (compressed) uses 84% fewer tokens than JSON (pretty)!**
+**GBLN (minified) uses 84% fewer tokens than JSON (pretty)!**
 
 ---
 
@@ -317,7 +317,7 @@ Write code to update the server configuration...
 **With GBLN:**
 ```
 Available configurations (1,800 tokens):
-[GBLN compressed configurations...]
+[GBLN minified configurations...]
 
 Write code to update the server configuration...
 ```
@@ -335,7 +335,7 @@ Write code to update the server configuration...
 - Context limit: 100K tokens
 - Max retrievals: ~2-3 configs
 
-**GBLN (compressed):**
+**GBLN (minified):**
 - 1,000 configs = 8,300 tokens per retrieval
 - Context limit: 100K tokens
 - Max retrievals: ~12 configs
@@ -585,7 +585,7 @@ gbln_compressed_tokens = len(encoder.encode(gbln_compressed))
 
 print(f"JSON: {json_tokens} tokens")
 print(f"GBLN (pretty): {gbln_pretty_tokens} tokens")
-print(f"GBLN (compressed): {gbln_compressed_tokens} tokens")
+print(f"GBLN (minified): {gbln_compressed_tokens} tokens")
 print(f"Savings: {json_tokens - gbln_compressed_tokens} tokens ({(1 - gbln_compressed_tokens/json_tokens)*100:.1f}%)")
 ```
 
@@ -601,11 +601,11 @@ print(f"Savings: {json_tokens - gbln_compressed_tokens} tokens ({(1 - gbln_compr
 | JSON (minified) | 37,000 | 37% | 63,000 tokens (63%) |
 | YAML | 48,000 | 48% | 52,000 tokens (52%) |
 | **GBLN (pretty)** | 10,000 | 10% | 90,000 tokens (90%) |
-| **GBLN (compressed)** | **8,300** | **8.3%** | **91,700 tokens (91.7%)** |
+| **GBLN (minified)** | **8,300** | **8.3%** | **91,700 tokens (91.7%)** |
 
 **Assumption:** 100K token context window (Claude 2.1, GPT-4 Turbo)
 
-**GBLN compressed uses 91.7% less context than JSON**, leaving **10x more space** for actual reasoning!
+**GBLN minified uses 91.7% less context than JSON**, leaving **10x more space** for actual reasoning!
 
 ---
 
