@@ -89,12 +89,12 @@ server{host<s64>(api.example.com)port<u16>(8080)workers<u8>(4)}
 
 | Format | Bytes | vs JSON | Type-Safe | Memory-Bounded |
 |--------|-------|---------|-----------|----------------|
-| **GBLN** | **49,276** ⭐ | **-0.4%** ⭐ | ✅ ⭐ | ✅ ⭐ |
+| **GBLN** | **49,276** ⭐ | **0.4% smaller** ⭐ | ✅ ⭐ | ✅ ⭐ |
 | JSON (minified) | 49,466 | baseline | ❌ | ❌ |
-| TOON | 53,601 | +8% | ❌ | ❌ |
-| YAML | 57,701 | +17% | ❌ | ❌ |
+| TOON | 53,601 | 8.4% larger | ❌ | ❌ |
+| YAML | 57,701 | 16.6% larger | ❌ | ❌ |
 
-**The Real Win**: GBLN compressed is **190 bytes smaller** than JSON minified (0.4%) **AND includes type safety + memory bounds for free**.
+**The Real Win**: GBLN compressed is **0.4% smaller** than JSON minified (190 bytes) **AND includes type safety + memory bounds for free**.
 
 ### Key Insights
 
