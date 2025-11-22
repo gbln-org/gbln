@@ -72,35 +72,49 @@ server{host<s64>(api.example.com)port<u16>(8080)workers<u8>(4)}
 
 ---
 
-## 📊 Comparison
+## 📊 Comparison - Real Benchmarks
 
-### Real Benchmark (5 Employees, Nested Data)
+### 100 Employees (Nested Data, Production-Ready)
 
-| Format | File Size | vs JSON | Type-Safe | Memory-Bounded | LLM-Optimised |
-|--------|-----------|---------|-----------|----------------|---------------|
-| JSON | 4,431 bytes | baseline | ❌ | ❌ | ❌ |
-| YAML | 3,535 bytes | -20% | ❌ | ❌ | ❌ |
-| TOON | 3,326 bytes | -25% | ❌ | ❌ | ⚠️ |
-| **GBLN (readable)** | 4,757 bytes | +7% | ✅ | ✅ | ✅ |
-| **GBLN (compressed)** | **3,138 bytes** ⭐ | **-29%** ⭐ | ✅ ⭐ | ✅ ⭐ | ✅ ⭐ |
+**Human-Readable Formats** (Development):
 
-**Key Insights:**
-- **GBLN compressed is smallest** - 6% smaller than TOON, 29% smaller than JSON
-- **TOON wins for flat arrays** - CSV-style compression (not tested here)
-- **GBLN adds type safety** - Parse-time validation, memory bounds
-- **Progressive complexity** - Types optional (unique feature)
+| Format | Bytes | vs JSON | Type-Safe | Memory-Bounded |
+|--------|-------|---------|-----------|----------------|
+| TOON | 53,601 | -32% | ❌ | ❌ |
+| YAML | 57,701 | -27% | ❌ | ❌ |
+| **GBLN** | **66,273** | **-17%** | ✅ ⭐ | ✅ ⭐ |
+| JSON | 79,394 | baseline | ❌ | ❌ |
 
-### Projected Comparison (1000 Records)
+**Compressed Formats** (Production):
 
-| Metric | JSON | YAML | TOML | TOON | **GBLN** |
-|--------|------|------|------|------|----------|
-| **File Size** | 156 KB | 142 KB | 165 KB | ~120 KB | **30 KB** ⭐ |
-| **LLM Tokens** | 52,000 | 48,000 | 55,000 | ~40,000 | **8,300** ⭐ |
-| **Type-Safe** | ❌ | ❌ | ❌ | ❌ | ✅ ⭐ |
-| **Memory-Bounded** | ❌ | ❌ | ❌ | ❌ | ✅ ⭐ |
-| **Parse Speed** | 45 ms | 320 ms | 85 ms | ~80 ms | **65 ms** ✅ |
+| Format | Bytes | vs JSON | Type-Safe | Memory-Bounded |
+|--------|-------|---------|-----------|----------------|
+| **GBLN** | **49,276** ⭐ | **-0.4%** ⭐ | ✅ ⭐ | ✅ ⭐ |
+| JSON (minified) | 49,466 | baseline | ❌ | ❌ |
+| TOON | 53,601 | +8% | ❌ | ❌ |
+| YAML | 57,701 | +17% | ❌ | ❌ |
 
-**GBLN: The only format optimised for both humans AND AI with type safety and memory bounds.**
+**The Real Win**: GBLN compressed is **190 bytes smaller** than JSON minified (0.4%) **AND includes type safety + memory bounds for free**.
+
+### Key Insights
+
+**File Size**: Nearly identical to JSON minified (~0.4% difference)
+
+**But GBLN adds** (at zero size cost):
+- ✅ **Parse-time type validation** - Catch errors before runtime
+- ✅ **Bounded strings** - `s32` = max 32 chars, no buffer overflows
+- ✅ **Memory predictability** - `u32` = 0-4B range, known at parse-time
+- ✅ **LLM validation** - Reject hallucinated data immediately
+- ✅ **Deterministic parsing** - 3 simple rules, O(1) lookahead
+- ✅ **Progressive complexity** - Types optional for prototyping
+
+**When Each Format Wins**:
+- **GBLN**: Nested data + type safety (this benchmark) ⭐
+- **TOON**: Flat/uniform tables (CSV-style, not tested here)
+- **JSON**: Maximum ecosystem compatibility
+- **YAML**: Human-editable configs (with gotchas)
+
+**Honest Assessment**: GBLN and JSON minified are **virtually identical in size**. GBLN's advantage is **reliability, not bytes saved**.
 
 ---
 
