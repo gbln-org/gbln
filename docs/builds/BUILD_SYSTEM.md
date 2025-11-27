@@ -1,17 +1,51 @@
 # GBLN Build System Documentation
 
-**Version:** 1.0  
-**Last Updated:** 2025-11-26  
+**Version:** 2.0  
+**Last Updated:** 2025-11-27  
 **Status:** Production
+
+---
+
+## ⚠️ MANDATORY BUILD POLICY ⚠️
+
+**CRITICAL: There is ONLY ONE VALID way to build GBLN for any platform.**
+
+### The Only Valid Build Method
+
+**ALL platform builds MUST use Docker-based cross-compilation via `cross` tool.**
+
+This is **NOT optional**. This is **NOT a recommendation**. This is the **ONLY accepted method**.
+
+### Why This Is Mandatory
+
+1. **Uniform Quality**: Identical build environment across all platforms
+2. **Reproducibility**: Same Docker images guarantee same results
+3. **No Local Variations**: Developer machine differences cannot affect builds
+4. **Verified Toolchains**: Docker images contain tested, known-good toolchains
+5. **CI/CD Compatibility**: Same method works on developer machines and CI servers
+
+### What Is NOT Allowed
+
+❌ **Native cross-compilation** (cargo build --target on host)  
+❌ **Platform-specific toolchains** (Xcode, MSVC, etc. on host)  
+❌ **Custom Docker images** (only official cross-rs images)  
+❌ **Manual toolchain setup** (no custom gcc, clang, linker configs)  
+❌ **"It works on my machine"** (if not via Docker, it's invalid)
+
+### The Exception That Proves The Rule
+
+**There are NO exceptions.** Even macOS ARM64 (the native development platform) should ideally be built via Docker when possible.
+
+**Current pragmatic compromise:** macOS ARM64 native builds are allowed ONLY for rapid development iteration. Production releases MUST use Docker.
 
 ---
 
 ## Overview
 
-This document describes the complete GBLN build system for all supported platforms. The build system uses **Rust + Cargo** as the primary build tool, with **cross** for Docker-based cross-compilation.
+This document describes the complete GBLN build system for all supported platforms. The build system uses **Docker + cross** as the **mandatory and only** build method.
 
 **Supported Platforms:** 10  
-**Build Method:** Native + Cross-compilation  
+**Build Method:** Docker + cross (MANDATORY)  
 **CI/CD:** GitHub Actions (planned)  
 **Documentation:** See `core/rust/BUILD_MATRIX.md` for complete platform matrix
 
@@ -20,28 +54,32 @@ This document describes the complete GBLN build system for all supported platfor
 ## Build Architecture
 
 ```
-Host: macOS ARM64 (or any platform with Rust + Docker)
+Host: Any platform with Docker
    ↓
 ┌──────────────────────────────────────────────────────┐
-│  Native Builds (cargo)                               │
-│  - macOS ARM64 (host)                                │
-│  - macOS x86_64, iOS ARM64 (cross-arch on macOS)    │
+│  MANDATORY: cross + Docker                           │
+│  - Uses official cross-rs Docker images              │
+│  - Identical environment for all platforms           │
+│  - No host toolchain pollution                       │
 └──────────────────────────────────────────────────────┘
    ↓
 ┌──────────────────────────────────────────────────────┐
-│  Cross-Compilation (cross + Docker)                  │
+│  Platform-Specific Docker Containers                 │
 │  - FreeBSD x86_64, ARM64                             │
 │  - Linux x86_64, ARM64                               │
 │  - Windows x86_64 (MinGW)                            │
 │  - Android ARM64, x86_64                             │
+│  - macOS x86_64, ARM64 (when available)              │
+│  - iOS ARM64 (when available)                        │
 └──────────────────────────────────────────────────────┘
    ↓
 ┌──────────────────────────────────────────────────────┐
-│  Build Artifacts                                     │
-│  target/{triple}/release/libgbln.rlib                │
-│  (or target/release/ for native)                     │
+│  Build Artifacts (Uniform Quality)                   │
+│  target/{triple}/release/libgbln.*                   │
 └──────────────────────────────────────────────────────┘
 ```
+
+**Key Principle:** The Docker container is the build environment. The host is merely a Docker client.
 
 ---
 
@@ -75,90 +113,118 @@ Host: macOS ARM64 (or any platform with Rust + Docker)
 
 ## Platform Matrix
 
-| Platform | Target Triple | Method | Tier | Status |
-|----------|---------------|--------|------|--------|
-| FreeBSD ARM64 | `aarch64-unknown-freebsd` | cross + nightly | 3 | ✅ 361 KB |
-| FreeBSD x86_64 | `x86_64-unknown-freebsd` | cross | 2 | ✅ 384 KB |
-| Linux ARM64 | `aarch64-unknown-linux-gnu` | cross | 2 | ✅ 386 KB |
-| Linux x86_64 | `x86_64-unknown-linux-gnu` | cross | 1 | ✅ 385 KB |
-| macOS ARM64 | `aarch64-apple-darwin` | cargo (native) | 2 | ✅ 296 KB |
-| macOS x86_64 | `x86_64-apple-darwin` | cargo | 1 | ✅ 291 KB |
-| Windows x86_64 | `x86_64-pc-windows-gnu` | cross (MinGW) | - | ✅ 290 KB |
-| iOS ARM64 | `aarch64-apple-ios` | cargo | 2 | ✅ 290 KB |
-| Android ARM64 | `aarch64-linux-android` | cross | 2 | ✅ 390 KB |
-| Android x86_64 | `x86_64-linux-android` | cross | 2 | ✅ 387 KB |
+| Platform | Target Triple | Method | Docker Image | Status |
+|----------|---------------|--------|--------------|--------|
+| FreeBSD ARM64 | `aarch64-unknown-freebsd` | cross (Docker) | cross-rs/aarch64-unknown-freebsd:edge | ✅ Verified |
+| FreeBSD x86_64 | `x86_64-unknown-freebsd` | cross (Docker) | cross-rs/x86_64-unknown-freebsd:main | ✅ Verified |
+| Linux ARM64 | `aarch64-unknown-linux-gnu` | cross (Docker) | cross-rs/aarch64-unknown-linux-gnu:main | ✅ Verified |
+| Linux x86_64 | `x86_64-unknown-linux-gnu` | cross (Docker) | cross-rs/x86_64-unknown-linux-gnu:main | ✅ Verified |
+| macOS ARM64 | `aarch64-apple-darwin` | cross (Docker) when available | N/A (dev: native) | ⚠️ Dev only |
+| macOS x86_64 | `x86_64-apple-darwin` | cross (Docker) when available | N/A (needs rustup) | ⏳ Pending |
+| Windows x86_64 | `x86_64-pc-windows-gnu` | cross (Docker) | cross-rs/x86_64-pc-windows-gnu:main | ✅ Verified |
+| iOS ARM64 | `aarch64-apple-ios` | cross (Docker) when available | N/A (needs rustup) | ⏳ Pending |
+| Android ARM64 | `aarch64-linux-android` | cross (Docker) | cross-rs/aarch64-linux-android:main | ✅ Verified |
+| Android x86_64 | `x86_64-linux-android` | cross (Docker) | cross-rs/x86_64-linux-android:main | ✅ Verified |
 
-**Rust Tier Explanation:**
-- **Tier 1**: Guaranteed to work, tested on CI
-- **Tier 2**: Guaranteed to build, best effort testing
-- **Tier 3**: No guarantees, requires special setup
+**Status Legend:**
+- ✅ **Verified**: Successfully built via Docker with cross
+- ⚠️ **Dev only**: Native builds allowed for development iteration only, NOT for releases
+- ⏳ **Pending**: Awaiting Docker image support from cross-rs project
 
 ---
 
 ## Building All Platforms
 
-### Quick Start - Build Everything
+### Quick Start - Build Everything (MANDATORY METHOD)
 
 ```bash
-cd /path/to/GBLN/core/rust
+cd /path/to/GBLN/core/ffi  # or core/rust for Rust core
 
-# Install all required Rust targets
-rustup target add \
-    x86_64-unknown-freebsd \
-    aarch64-unknown-freebsd \
-    x86_64-unknown-linux-gnu \
-    aarch64-unknown-linux-gnu \
-    x86_64-apple-darwin \
-    aarch64-apple-darwin \
-    x86_64-pc-windows-gnu \
-    aarch64-apple-ios \
-    aarch64-linux-android \
-    x86_64-linux-android
+# 1. Install cross tool (REQUIRED)
+cargo install cross --git https://github.com/cross-rs/cross
 
-# Install nightly for Tier 3 targets (FreeBSD ARM64)
-rustup toolchain install nightly
-rustup component add rust-src --toolchain nightly
-
-# Start Docker
+# 2. Start Docker (REQUIRED - this is your build environment)
 open -a Docker  # macOS
 # or: systemctl start docker  # Linux
 
-# Wait for Docker to start
+# Wait for Docker to start and verify
 sleep 15
+docker ps  # Should show no errors
 
-# Build all platforms (10-15 minutes total)
-# Native builds
-cargo build --release --target aarch64-apple-darwin  # macOS ARM64 (native)
-cargo build --release --target x86_64-apple-darwin    # macOS x86_64
-cargo build --release --target aarch64-apple-ios      # iOS ARM64
+# 3. Build ALL platforms via Docker (MANDATORY)
+# This is the ONLY valid way to build GBLN for any platform
 
-# Cross-compilation
+# FreeBSD (both architectures)
 cross build --release --target x86_64-unknown-freebsd
-cross +nightly build --release --target aarch64-unknown-freebsd  # Tier 3
+cross build --release --target aarch64-unknown-freebsd
+
+# Linux (both architectures)
 cross build --release --target x86_64-unknown-linux-gnu
 cross build --release --target aarch64-unknown-linux-gnu
-cross build --release --target x86_64-pc-windows-gnu  # MinGW
+
+# Windows (MinGW)
+cross build --release --target x86_64-pc-windows-gnu
+
+# Android (both architectures)
 cross build --release --target aarch64-linux-android
 cross build --release --target x86_64-linux-android
+
+# macOS/iOS (when Docker images available)
+# Currently: Use native builds ONLY for rapid development
+# Production releases: MUST use Docker when available
 ```
 
-### Build Script (Automated)
+### ⚠️ CRITICAL: No Shortcuts Allowed
 
-Create `scripts/build-all.sh`:
+**DO NOT:**
+- ❌ Use `cargo build` without `cross`
+- ❌ Install platform-specific toolchains (Xcode, MSVC, etc.)
+- ❌ Try to "optimize" by skipping Docker
+- ❌ Use different methods for different platforms
+
+**WHY:**
+- Different toolchain versions produce different binaries
+- Host environment variations cause bugs
+- "Works on my machine" is NOT acceptable
+- We need bit-for-bit reproducible builds
+
+### Build Script (Automated - MANDATORY Docker Method)
+
+**Location:** `core/ffi/build-docker.sh` (already created for Ticket #005B)
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
+# GBLN C FFI - Docker-Based Cross-Platform Build Script
+# This is the ONLY valid way to build GBLN for production
+
 set -euo pipefail
 
-cd "$(dirname "$0")/../core/rust"
-source "$HOME/.cargo/env"
+cd "$(dirname "$0")"
 
+# Color output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo "GBLN Docker-Based Build System"
+echo "==============================="
+echo ""
+echo "⚠️  MANDATORY: All builds use Docker via 'cross' tool"
+echo "⚠️  This ensures uniform quality across all platforms"
+echo ""
+
+# Check Docker is running
+if ! docker ps >/dev/null 2>&1; then
+    echo -e "${RED}ERROR: Docker is not running${NC}"
+    echo "Start Docker and try again"
+    exit 1
+fi
+
+# All production platforms (Docker-based)
 TARGETS=(
-    "aarch64-apple-darwin"      # Native on Apple Silicon
-    "x86_64-apple-darwin"
-    "aarch64-apple-ios"
     "x86_64-unknown-freebsd"
-    "aarch64-unknown-freebsd"   # Tier 3 - needs nightly
+    "aarch64-unknown-freebsd"
     "x86_64-unknown-linux-gnu"
     "aarch64-unknown-linux-gnu"
     "x86_64-pc-windows-gnu"
@@ -166,148 +232,123 @@ TARGETS=(
     "x86_64-linux-android"
 )
 
-echo "Building GBLN for all platforms..."
-echo "===================================="
+echo -e "${GREEN}Building 7 platforms via Docker...${NC}"
+echo ""
 
 for target in "${TARGETS[@]}"; do
+    echo -e "${YELLOW}Building: $target${NC}"
+    cross build --release --target "$target"
+    echo -e "${GREEN}✓ Built: $target${NC}"
     echo ""
-    echo "Building: $target"
-    
-    if [[ "$target" == "aarch64-apple-darwin" ]]; then
-        # Native build
-        cargo build --release --target "$target"
-    elif [[ "$target" == "aarch64-unknown-freebsd" ]]; then
-        # Tier 3 - needs nightly
-        cross +nightly build --release --target "$target"
-    else
-        # Cross-compilation
-        cross build --release --target "$target"
-    fi
-    
-    echo "✓ Built: $target"
 done
 
+echo -e "${GREEN}All platforms built successfully via Docker!${NC}"
 echo ""
-echo "All platforms built successfully!"
+echo "Artifacts:"
+find target -name "libgbln.*" -type f | grep release | sort
 ```
 
-Usage:
+**Usage:**
 ```bash
-chmod +x scripts/build-all.sh
-./scripts/build-all.sh
+cd core/ffi
+./build-docker.sh
 ```
+
+**This script is the MANDATORY method for all production builds.**
 
 ---
 
 ## Platform-Specific Instructions
 
+**⚠️ IMPORTANT: All instructions below use Docker via `cross`. No other method is permitted.**
+
 ### FreeBSD (Both Architectures)
 
-**Requirements:**
-- Rust nightly toolchain (for ARM64 only)
-- `cross` tool
-- Docker running
+**MANDATORY Method: Docker via cross**
 
-**Configuration** (`core/rust/Cross.toml`):
-```toml
-[build]
-default-target = "aarch64-unknown-freebsd"
-
-[target.aarch64-unknown-freebsd]
-build-std = ["core", "alloc", "std", "panic_abort"]
-```
-
-**Build commands:**
 ```bash
-# x86_64 (Tier 2)
+# x86_64
 cross build --release --target x86_64-unknown-freebsd
 
-# ARM64 (Tier 3 - requires nightly + build-std)
-rustup component add rust-src --toolchain nightly
-cross +nightly build --release --target aarch64-unknown-freebsd
+# ARM64
+cross build --release --target aarch64-unknown-freebsd
 ```
 
-**Why nightly for ARM64?**
-- FreeBSD ARM64 is Tier 3 (no pre-built standard library)
-- Requires `-Z build-std` to compile std from source
-- Only available on nightly toolchain
+**Docker Images Used:**
+- x86_64: `ghcr.io/cross-rs/x86_64-unknown-freebsd:main`
+- ARM64: `ghcr.io/cross-rs/aarch64-unknown-freebsd:edge`
+
+**Status:** ✅ Verified working
 
 ### Linux (Both Architectures)
 
-**Requirements:**
-- `cross` tool
-- Docker running
+**MANDATORY Method: Docker via cross**
 
-**Build commands:**
 ```bash
-# x86_64 (Tier 1)
+# x86_64
 cross build --release --target x86_64-unknown-linux-gnu
 
-# ARM64 (Tier 2)
+# ARM64
 cross build --release --target aarch64-unknown-linux-gnu
 ```
 
+**Docker Images Used:**
+- x86_64: `ghcr.io/cross-rs/x86_64-unknown-linux-gnu:main`
+- ARM64: `ghcr.io/cross-rs/aarch64-unknown-linux-gnu:main`
+
+**Status:** ✅ Verified working
+
 ### macOS (Both Architectures)
 
-**Requirements:**
-- Native Rust toolchain
-- Xcode Command Line Tools
+**Current Status:** ⚠️ Docker images not yet available from cross-rs
 
-**Build commands:**
+**Temporary Exception (Development ONLY):**
 ```bash
 # ARM64 (native on Apple Silicon)
 cargo build --release --target aarch64-apple-darwin
-
-# x86_64 (cross-compile on Apple Silicon)
-rustup target add x86_64-apple-darwin
-cargo build --release --target x86_64-apple-darwin
 ```
 
-**Artifact location:**
-- Native (ARM64): `target/release/libgbln.rlib`
-- x86_64: `target/x86_64-apple-darwin/release/libgbln.rlib`
+**⚠️ WARNING:** Native builds are ONLY for rapid development iteration.
+
+**Production Requirement:** When cross-rs provides macOS Docker images, ALL builds must migrate to Docker method.
+
+**Status:** ⏳ Pending cross-rs Docker image support
 
 ### Windows (x86_64)
 
-**Requirements:**
-- `cross` tool
-- Docker running
+**MANDATORY Method: Docker via cross**
 
-**Build command:**
 ```bash
 # MinGW (GNU ABI)
-rustup target add x86_64-pc-windows-gnu
 cross build --release --target x86_64-pc-windows-gnu
 ```
 
-**Note:** MSVC not available for cross-compilation from macOS/Linux. MinGW produces compatible Windows binaries with GNU ABI.
+**Docker Image Used:**
+- `ghcr.io/cross-rs/x86_64-pc-windows-gnu:main`
 
-For MSVC builds, use Windows CI runner:
-```bash
-# On Windows with MSVC
-rustup target add x86_64-pc-windows-msvc
-cargo build --release --target x86_64-pc-windows-msvc
-```
+**Note:** Produces Windows binaries with GNU ABI (MinGW). Compatible with all Windows systems.
+
+**Status:** ✅ Verified working
 
 ### iOS (ARM64)
 
-**Requirements:**
-- Xcode with iOS SDK
-- Native Rust toolchain
+**Current Status:** ⚠️ Docker images not yet available from cross-rs
 
-**Build command:**
+**Temporary Exception (When Needed):**
 ```bash
+# For Swift bindings development only
 rustup target add aarch64-apple-ios
 cargo build --release --target aarch64-apple-ios
 ```
 
+**Production Requirement:** When cross-rs provides iOS Docker images, must migrate to Docker method.
+
+**Status:** ⏳ Pending cross-rs Docker image support
+
 ### Android (Both Architectures)
 
-**Requirements:**
-- `cross` tool
-- Docker running
+**MANDATORY Method: Docker via cross**
 
-**Build commands:**
 ```bash
 # ARM64
 cross build --release --target aarch64-linux-android
@@ -315,6 +356,21 @@ cross build --release --target aarch64-linux-android
 # x86_64 (emulator)
 cross build --release --target x86_64-linux-android
 ```
+
+**Docker Images Used:**
+- ARM64: `ghcr.io/cross-rs/aarch64-linux-android:main`
+- x86_64: `ghcr.io/cross-rs/x86_64-linux-android:main`
+
+**Status:** ✅ Verified working
+
+---
+
+### Summary: Docker Is The Law
+
+**7 Platforms:** ✅ Docker-based via cross (MANDATORY)  
+**3 Platforms:** ⏳ Awaiting Docker image support (temporary native exception)
+
+**When Docker images become available for macOS/iOS, native builds will be FORBIDDEN.**
 
 ---
 
