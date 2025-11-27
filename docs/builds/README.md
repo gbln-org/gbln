@@ -2,45 +2,74 @@
 
 This directory contains documentation for building GBLN on all supported platforms.
 
+## ⚠️ MANDATORY BUILD POLICY
+
+**There is ONLY ONE valid way to build GBLN: Docker via `cross` tool.**
+
+This is not a recommendation. This is the **ONLY accepted method** for all production builds.
+
 ## Documentation
 
-**[BUILD_SYSTEM.md](BUILD_SYSTEM.md)** - Complete build system documentation
+**[BUILD_SYSTEM.md](BUILD_SYSTEM.md)** - Complete build system documentation (v2.0 - Docker mandatory)
 
 ## Overview
 
-GBLN supports **10 platforms** via Rust + Cargo + cross-compilation:
+GBLN supports **10 platforms** via **mandatory Docker-based builds**:
 
-| Platform | Architecture | Status |
-|----------|--------------|--------|
-| FreeBSD | x86_64, ARM64 | ✅ |
-| Linux | x86_64, ARM64 | ✅ |
-| macOS | x86_64, ARM64 | ✅ |
-| Windows | x86_64 | ✅ |
-| iOS | ARM64 | ✅ |
-| Android | ARM64, x86_64 | ✅ |
+| Platform | Architecture | Build Method | Status |
+|----------|--------------|--------------|--------|
+| FreeBSD | x86_64, ARM64 | Docker (cross) | ✅ Verified |
+| Linux | x86_64, ARM64 | Docker (cross) | ✅ Verified |
+| macOS | x86_64, ARM64 | Docker (pending) | ⏳ Dev exception |
+| Windows | x86_64 | Docker (cross) | ✅ Verified |
+| iOS | ARM64 | Docker (pending) | ⏳ Dev exception |
+| Android | ARM64, x86_64 | Docker (cross) | ✅ Verified |
 
-## Quick Start
+**7/10 platforms:** ✅ Docker-verified  
+**3/10 platforms:** ⏳ Awaiting Docker image support (temporary native exception)
+
+## Quick Start (MANDATORY METHOD)
 
 ```bash
-# Install prerequisites
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# Install Docker (REQUIRED)
+# macOS: Install Docker Desktop
+# Linux: sudo apt install docker.io
+
+# Install cross tool (REQUIRED)
 cargo install cross --git https://github.com/cross-rs/cross
 
-# Build all platforms
-cd core/rust
-./scripts/build-all.sh
+# Start Docker (REQUIRED)
+open -a Docker  # macOS
+# or: sudo systemctl start docker  # Linux
+
+# Build all platforms via Docker (MANDATORY)
+cd core/ffi  # or core/rust
+./build-docker.sh
 ```
+
+**DO NOT use `cargo build` directly. Use `cross build` for all platforms.**
 
 For detailed instructions, platform-specific guides, and troubleshooting, see **[BUILD_SYSTEM.md](BUILD_SYSTEM.md)**.
 
 ## Build Method
 
-All platforms are built via **cross-compilation** using:
-- **Rust + Cargo** - Native and cross-arch builds
-- **cross** - Docker-based cross-compilation for other platforms
-- **Docker** - Provides platform-specific build environments
+**MANDATORY:** All platforms MUST be built via **Docker-based cross-compilation**:
 
-No VMs required. All builds work from any host with Rust + Docker.
+- **Docker** - The build environment (MANDATORY)
+- **cross** - Docker orchestration tool (MANDATORY)
+- **Rust + Cargo** - Build tool (runs inside Docker)
+
+**Why Docker is mandatory:**
+1. **Uniform Quality** - Identical build environment across all platforms
+2. **Reproducibility** - Same Docker images = same results
+3. **No Variations** - Developer machine differences cannot affect builds
+4. **CI/CD Compatible** - Same method on dev machines and CI servers
+
+**What is NOT allowed:**
+- ❌ Native cargo builds (except macOS ARM64 for rapid dev iteration)
+- ❌ Platform-specific toolchains (Xcode, MSVC, etc.)
+- ❌ Custom Docker images
+- ❌ "It works on my machine" solutions
 
 ## Related Documentation
 
@@ -51,5 +80,6 @@ No VMs required. All builds work from any host with Rust + Docker.
 
 ---
 
-**Last Updated:** 2025-11-26  
-**Build System Status:** ✅ Fully Operational (10/10 platforms)
+**Last Updated:** 2025-11-27  
+**Build System Status:** ✅ Fully Operational (10/10 platforms)  
+**Build Policy Version:** 2.0 (Docker mandatory)
