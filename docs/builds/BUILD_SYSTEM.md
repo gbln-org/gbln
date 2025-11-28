@@ -369,30 +369,46 @@ setup(
 
 ### Build Hangs (File Lock)
 
-**Symptom:** Build shows "Blocking waiting for file lock on build directory"
+**Symptom:** Build shows "Blocking waiting for file lock on build directory", or build runs indefinitely with 0% CPU usage
 
-**Cause:** Parallel builds trying to access same Cargo lock
+**Cause:** Multiple `cross build` commands running in parallel trying to access the same Cargo build artifacts
+
+**Root Cause:** Cargo uses lock files (`target/.cargo-lock`) to prevent concurrent access. When multiple cross containers try to build simultaneously, they block each other indefinitely.
 
 **Solution:**
 ```bash
-# Kill all cross processes
-pkill -f "cross build"
+# 1. Kill all cross processes
+pkill -9 -f cross
 
-# Stop Docker containers
-docker ps -q | xargs docker stop
+# 2. Stop ALL Docker containers
+docker stop $(docker ps -q)
 
-# Rebuild sequentially
+# 3. Remove stale lock files (if any)
+rm -f core/ffi/target/.cargo-lock
+
+# 4. Rebuild sequentially (THE ONLY WAY)
+cd core/ffi
 ./build-all.sh
 ```
+
+**Prevention:** ALWAYS use `build-all.sh`. NEVER run parallel builds.
+
+**Lesson Learned (2025-11-28):** We tried parallel builds multiple times. They ALWAYS hang. Sequential is the ONLY reliable method.
 
 ### FreeBSD ARM64 Toolchain Error
 
 **Symptom:** `toolchain '1.88.0' does not support target 'aarch64-unknown-freebsd'`
 
-**Solution:** Use nightly with `-Z build-std`:
+**Cause:** FreeBSD ARM64 is a Tier 3 target in Rust - no pre-built standard library available
+
+**Solution:** Use nightly toolchain with `-Z build-std` to compile the standard library from source:
 ```bash
 cross +nightly build --release --target aarch64-unknown-freebsd -Z build-std
 ```
+
+**Build Time:** 5-10 minutes (first build), as it compiles the entire Rust standard library
+
+**Note:** This is already included in `build-all.sh` for platform 4 (FreeBSD ARM64)
 
 ### Docker Permission Denied
 
@@ -414,6 +430,43 @@ cargo install cross --git https://github.com/cross-rs/cross
 # Add to PATH
 export PATH="$HOME/.cargo/bin:$PATH"
 ```
+
+### macOS Library Load Crashes (Illegal instruction: 4, Killed: 9)
+
+**Symptom:** Python tests crash with `Signal: Killed: 9` or `Illegal instruction: 4` when loading library on macOS
+
+**Cause:** The macOS library has an incorrect `install_name` pointing to an absolute build path instead of `@rpath`
+
+**Diagnosis:**
+```bash
+otool -L core/ffi/libs/macos-arm64/libgbln.dylib
+```
+
+If you see an absolute path like:
+```
+/Users/.../core/ffi/target/release/deps/libgbln.dylib
+```
+
+The library will fail to load.
+
+**Solution:** Fix the install_name using `install_name_tool`:
+```bash
+install_name_tool -id @rpath/libgbln.dylib core/ffi/libs/macos-arm64/libgbln.dylib
+```
+
+**Verification:**
+```bash
+otool -L core/ffi/libs/macos-arm64/libgbln.dylib
+```
+
+Should show:
+```
+@rpath/libgbln.dylib (compatibility version 0.0.0, current version 0.0.0)
+```
+
+**Prevention:** macOS library should always be built natively with `cargo build --release`, not with `cross`. The `build-all.sh` script handles this correctly.
+
+**Lesson Learned (2025-11-28):** Always verify install_name after building macOS libraries. Incorrect install_name causes immediate crashes when ctypes tries to load the library.
 
 ---
 

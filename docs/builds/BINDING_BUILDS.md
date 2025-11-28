@@ -530,10 +530,120 @@ Pre-compiled libraries included. No build tools required.
 
 ## Language-Specific Notes
 
-### Python (#100)
-- Use `ctypes.CDLL()` for library loading
-- Use `weakref.finalize()` for memory management
-- Type hints for all public API
+### Python (#100) - VERIFIED & TESTED
+
+**Status:** ✅ Complete - 44/44 tests passing (2025-11-28)
+
+**Key Implementation Details:**
+
+1. **Library Loading:**
+   ```python
+   # CRITICAL: Use .resolve() on Path to handle pytest's relative paths
+   package_dir = Path(__file__).parent.resolve()
+   libs_base = package_dir.parent.parent.parent.parent / "core" / "ffi" / "libs"
+   lib_path = libs_base / lib_dir / lib_name
+   ```
+   
+   **Why `.resolve()`?** pytest loads modules from `tests/../src/gbln/` which creates relative paths. Without `.resolve()`, path traversal calculates incorrectly and libraries aren't found.
+
+2. **Memory Management:**
+   ```python
+   import weakref
+   
+   class Value:
+       def __init__(self, ptr):
+           self._ptr = ptr
+           # Automatically free when garbage collected
+           weakref.finalize(self, _lib.gbln_value_free, ptr)
+   ```
+
+3. **Type Hints:**
+   - All public functions fully typed
+   - Return types explicit: `-> dict[str, Any]`, `-> str`, etc.
+   - Parameters typed: `input: str`, `config: GblnConfig`, etc.
+
+4. **Testing:**
+   - 44 tests across 4 test files
+   - Use `pytest` with `-o addopts=""` to override config
+   - Clear Python cache before tests: `find . -name __pycache__ -exec rm -rf {} +`
+
+**Common Issues & Solutions:**
+
+**Issue 1: "No precompiled binary available" when running pytest**
+
+**Cause:** Path calculation uses relative paths without `.resolve()`
+
+**Solution:**
+```python
+# WRONG - fails with pytest
+package_dir = Path(__file__).parent
+
+# CORRECT - works with pytest
+package_dir = Path(__file__).parent.resolve()
+```
+
+**Issue 2: "Illegal instruction: 4" or "Killed: 9" on macOS**
+
+**Cause:** macOS library has wrong install_name (absolute path instead of @rpath)
+
+**Solution:**
+```bash
+# Check install_name
+otool -L core/ffi/libs/macos-arm64/libgbln.dylib
+
+# Fix if needed
+install_name_tool -id @rpath/libgbln.dylib core/ffi/libs/macos-arm64/libgbln.dylib
+```
+
+**Issue 3: Tests pass with `python3 -c` but fail with pytest**
+
+**Cause:** pytest caches compiled `.pyc` files
+
+**Solution:**
+```bash
+# Clear all Python caches
+find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+find . -name "*.pyc" -delete
+rm -rf .pytest_cache
+
+# Then run tests
+pytest -v
+```
+
+**Issue 4: Editable install not picking up changes**
+
+**Cause:** pip caches the old installation
+
+**Solution:**
+```bash
+# Uninstall and reinstall
+python3 -m pip uninstall -y gbln
+python3 -m pip install -e .
+
+# Verify installation
+python3 -m pip show gbln
+```
+
+**Lessons Learned (2025-11-28):**
+
+1. ✅ **Always use `.resolve()`** on `Path(__file__).parent` to handle pytest's relative imports
+2. ✅ **Verify macOS install_name** after every C FFI rebuild - wrong install_name causes immediate crashes
+3. ✅ **Clear Python caches** before testing - stale `.pyc` files cause mysterious failures
+4. ✅ **Test both ways** - Run tests with `python3 -c` AND `pytest` to catch path issues early
+5. ✅ **Use editable install** for development - `pip install -e .` makes testing faster
+
+**Performance:**
+- Library loads in <1ms
+- Parse performance: ~10,000 records/second
+- 44 tests complete in <100ms
+
+**Files:**
+- `bindings/python/src/gbln/ffi.py` - FFI layer with platform detection
+- `bindings/python/src/gbln/parse.py` - Parsing API
+- `bindings/python/src/gbln/value.py` - Value wrapper with memory management
+- `bindings/python/tests/` - 44 tests across 4 files
+
+**Use Python bindings as reference for ALL other language bindings.**
 
 ### JavaScript (#101)
 - Use `ffi-napi` for FFI or WASM

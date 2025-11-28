@@ -252,6 +252,7 @@ pytest -v
 1. Is `core/ffi/libs/{platform}/` present?
 2. Is platform detection correct?
 3. Is library path calculation correct?
+4. Are you using `.resolve()` on paths (for pytest)?
 
 **Solution:**
 ```bash
@@ -260,7 +261,12 @@ ls -lh core/ffi/libs/*/
 
 # Check platform detection
 python -c "import platform; print(platform.system(), platform.machine())"
+
+# Verify path calculation
+python -c "from pathlib import Path; print(Path('src/gbln').resolve())"
 ```
+
+**For Python specifically:** Use `Path(__file__).parent.resolve()` - see [BINDING_BUILDS.md Python section](BINDING_BUILDS.md#python-100---verified--tested)
 
 ### Building C FFI Fails
 
