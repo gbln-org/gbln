@@ -142,44 +142,57 @@ Host: macOS/Linux with Docker + rustup + cross
 
 ## Building C FFI Libraries
 
-### IMPORTANT: Sequential Builds Only
+### ⚠️ CRITICAL: USE build-all.sh SCRIPT ONLY ⚠️
 
-**DO NOT run parallel builds!** Cargo lock files cause builds to hang waiting for each other.
-
-**Correct approach:**
-```bash
-cd core/ffi
-
-# Build sequentially with cross
-PATH="$HOME/.cargo/bin:$PATH"
-
-# Linux
-cross build --release --target x86_64-unknown-linux-gnu
-cross build --release --target aarch64-unknown-linux-gnu
-
-# FreeBSD
-cross build --release --target x86_64-unknown-freebsd
-cross +nightly build --release --target aarch64-unknown-freebsd -Z build-std
-
-# Windows
-cross build --release --target x86_64-pc-windows-gnu
-
-# Android
-cross build --release --target aarch64-linux-android
-cross build --release --target x86_64-linux-android
-
-# macOS (native - cross doesn't support macOS targets on macOS host)
-cargo build --release --target aarch64-apple-darwin
-```
-
-### Build Script
-
-Use the verified build script:
+**THIS IS THE ONLY VALID WAY TO BUILD C FFI LIBRARIES.**
 
 ```bash
 cd core/ffi
 ./build-all.sh
 ```
+
+**DO NOT:**
+- ❌ Run builds manually in parallel
+- ❌ Use background jobs (`&`)
+- ❌ Run multiple `cross build` commands simultaneously
+- ❌ Modify this script without testing all 8 platforms
+
+**WHY:**
+- Cargo lock files cause parallel builds to hang indefinitely
+- Builds will block waiting for locks with 0% CPU usage
+- This has been proven multiple times - sequential is the ONLY way
+
+### What build-all.sh Does
+
+The script builds all 8 platforms **sequentially** in this exact order:
+
+```bash
+# 1. Linux x86_64
+cross build --release --target x86_64-unknown-linux-gnu
+
+# 2. Linux ARM64
+cross build --release --target aarch64-unknown-linux-gnu
+
+# 3. FreeBSD x86_64
+cross build --release --target x86_64-unknown-freebsd
+
+# 4. FreeBSD ARM64 (requires nightly + build-std)
+cross +nightly build --release --target aarch64-unknown-freebsd -Z build-std
+
+# 5. Windows x86_64
+cross build --release --target x86_64-pc-windows-gnu
+
+# 6. Android ARM64
+cross build --release --target aarch64-linux-android
+
+# 7. Android x86_64
+cross build --release --target x86_64-linux-android
+
+# 8. macOS ARM64 (native)
+cargo build --release --target aarch64-apple-darwin
+```
+
+Then organizes all libraries into `libs/{platform}/` for distribution.
 
 **Script content** (`core/ffi/build-all.sh`):
 ```bash
