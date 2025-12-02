@@ -56,7 +56,7 @@
 
 [submodule "bindings/cpp"]
 	path = bindings/cpp
-	url = https://github.com/gbln-org/gbln-cpp.git
+	url = git@github.com:gbln-org/gbln-cpp.git
 	branch = main
 
 [submodule "bindings/ruby"]
