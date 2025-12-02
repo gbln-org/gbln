@@ -37,7 +37,7 @@ This repository serves as the central hub for the GBLN ecosystem. All implementa
 | [![Go](https://img.shields.io/badge/Go-v0.9.0-green?logo=go&logoColor=white)](https://github.com/gbln-org/gbln-go) | **[Go](https://github.com/gbln-org/gbln-go)** - Go bindings (FS-enabled, XZ, bidirectional) | ✅ v0.9.0 |
 | [![Swift](https://img.shields.io/badge/Swift-v0.9.0-green?logo=swift&logoColor=white)](https://github.com/gbln-org/gbln-swift) | **[Swift](https://github.com/gbln-org/gbln-swift)** - iOS/macOS/watchOS/tvOS bindings (FS-enabled, XZ) | ✅ v0.9.0 |
 | [![Java](https://img.shields.io/badge/Java-v0.9.0-green?logo=openjdk&logoColor=white)](https://github.com/gbln-org/gbln-java) | **[Java](https://github.com/gbln-org/gbln-java)** - Java bindings (FS-enabled, JNA-based, 8 platforms) | ✅ v0.9.0 |
-| <span style="filter: grayscale(100%); opacity: 0.6;">[![C#](https://img.shields.io/badge/C%23-planned-blue?logo=csharp&logoColor=white)](https://github.com/gbln-org/gbln-csharp)</span> | **[C#](https://github.com/gbln-org/gbln-csharp)** - .NET bindings | 📋 Planned |
+| [![C#](https://img.shields.io/badge/C%23-v0.9.0-green?logo=csharp&logoColor=white)](https://github.com/gbln-org/gbln-csharp) | **[C#](https://github.com/gbln-org/gbln-csharp)** - .NET 6/7/8 bindings (FS-enabled, P/Invoke, 8 platforms) | ✅ v0.9.0 |
 | <span style="filter: grayscale(100%); opacity: 0.6;">[![C++](https://img.shields.io/badge/C++-planned-blue?logo=cplusplus&logoColor=white)](https://github.com/gbln-org/gbln-cpp)</span> | **[C++](https://github.com/gbln-org/gbln-cpp)** - C++ bindings | 📋 Planned |
 | <span style="filter: grayscale(100%); opacity: 0.6;">[![Ruby](https://img.shields.io/badge/Ruby-planned-blue?logo=ruby&logoColor=white)](https://github.com/gbln-org/gbln-ruby)</span> | **[Ruby](https://github.com/gbln-org/gbln-ruby)** - Ruby bindings | 📋 Planned |
 | <span style="filter: grayscale(100%); opacity: 0.6;">[![PHP](https://img.shields.io/badge/PHP-planned-blue?logo=php&logoColor=white)](https://github.com/gbln-org/gbln-php)</span> | **[PHP](https://github.com/gbln-org/gbln-php)** - PHP bindings | 📋 Planned |
@@ -402,6 +402,9 @@ git clone https://github.com/gbln-org/gbln-kotlin.git
     <artifactId>gbln-java</artifactId>
     <version>0.9.0</version>
 </dependency>
+
+# C# (.NET)
+dotnet add package GBLN --version 0.9.0
 ```
 
 ---
